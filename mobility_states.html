@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+<title>Women's Mobility States</title>
+<script src="libraries/d3.v3.min.js"></script>
+<script src="libraries/topojson.v1.min.js"></script>
+<script src="libraries/queue.v1.min.js"></script>
+
+
+<style>
+body {
+	font-family: Arial;
+	font-size:14px;
+}
+.xAxis line {
+	fill:none;
+	stroke:rgb(250,250,250);
+	stroke-width:1px;
+	shape-rendering: crispEdges;
+}
+.xAxis path {
+	stroke:none;
+	fill:none;
+}
+.xAxis text {
+	font-size:12px;
+}
+.y.axis path {
+  fill:none;
+}
+.y.axis line {
+  fill: none;
+  stroke:rgb(230,230,230);
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+.labels text {
+	/*text-transform: capitalize;*/
+	/*alignment-baseline: middle;*/
+	font-size:14px;
+  text-anchor:end;
+}
+
+.yearlabels {
+  /*text-transform: capitalize;*/
+  /*alignment-baseline: middle;*/
+  font-size:18px;
+  font-style: italic;
+  /*font-weight:bold;*/
+}
+
+.legend text {
+	/*alignment-baseline: middle;*/
+	font-size:13px;
+}
+.title {
+	font-family: 'Franklin Gothic Medium';
+	/*font-weight:100;*/
+	font-size:24px;
+}
+.subtitle {
+  font-family:Arial;
+  font-size:18px;
+}
+.destination {
+  font-family:Arial;
+  font-size:20px;
+}
+.line-tn {
+  stroke:#3182bd;
+  stroke-width:1.5px;
+}
+.line-bihar {
+  stroke:#3182bd;
+  stroke-width:1.5px;
+}
+.baseline {
+  stroke:rgb(100,100,100);
+  stroke-width:1px;
+  shape-rendering: crispEdges;
+}
+.lastlabel {
+  text-anchor: end;
+}
+.area {
+    fill: lightsteelblue;
+    stroke-width: 0;
+}
+.circle {
+  fill:steelblue;
+}
+</style>
+</head>
+
+<body>
+<div id="main">
+	<div id="chartContainer"></div>
+</div>
+</body>
+
+<script>
+
+drawChart();
+
+//THE FUNCTION THAT DRAWS THE CHART
+function drawChart() {
+	//CREATING FUNCTIONS USED FOR THIS CHART
+
+  var pct = d3.format(".03p");
+  var pct_int = d3.format(".1p");
+  var years = ['2005','2012'];
+
+  var data = [
+    {
+      'destination':'health_centre',
+      'label':'Health centre',
+      'bihar': {
+        'values': [
+          { 
+            'year':'2005',
+            'value':.941
+          },
+          {
+            'year':'2012',
+            'value':.843
+          }
+        ]
+      },
+      'tamil_nadu': {
+        'values': [
+          { 
+            'year':'2005',
+            'value':.388,
+          },
+          {
+            'year':'2012',
+            'value':.866,
+          }
+        ]
+      }
+    },
+    {
+      'destination':'relative_friend',
+      'label':'Relative/friend',
+      'bihar': {
+        'values': [
+          {
+            'year':'2005',
+            'value':.952
+          },
+          {
+            'year':'2012',
+            'value':.769
+          }
+        ]
+      },
+      'tamil_nadu': {
+        'values': [
+          {
+            'year':'2005',
+            'value':.637,
+          },
+          {
+            'year':'2012',
+            'value':.865,
+          }
+        ]
+      }
+      
+    },
+    {
+      'destination':'kirana_shop',
+      'label':'Kirana shop',
+      'bihar': {
+        'values': [
+          {
+            'year':'2005',
+            'value':.8
+          },
+          {
+            'year':'2012',
+            'value':.595
+          }
+        ]
+      },
+      'tamil_nadu': {
+        'values': [
+          {
+            'year':'2005',
+            'value':.401,
+          },
+          {
+            'year':'2012',
+            'value':.810,
+          }
+        ]
+      }
+    }
+  ];
+
+  var containerSize = {
+    'width':350,
+    'height':300 
+  };
+
+  var chartMargin = {
+    'right':100,
+    'left':100,
+    'top':100,
+    'bottom':40
+  };
+
+  var chartSize = {
+    'width':containerSize.width - chartMargin.left - chartMargin.right, 
+    'height':containerSize.height - chartMargin.top - chartMargin.bottom
+  };
+
+  var panelMargin = {
+    'right':50,
+    'left':50,
+    'top':100,
+    'bottom':40
+  };
+
+  var panelSize = {
+    'width': (containerSize.width*3) + panelMargin.left + panelMargin.right, 
+    'height':(containerSize.height*3) + panelMargin.top + panelMargin.bottom
+  };
+
+  var svg = d3.select("#chartContainer")
+    .append('svg')
+    .attr('width',panelSize.width)
+    .attr('height',panelSize.height);
+
+  var y = d3.scale.linear()
+    .domain([0, 1])
+    .range([chartSize.height,0]);
+
+  var x = d3.scale.ordinal()
+    .domain(years)
+    .range([0,chartSize.width])
+
+  var line = d3.svg.line()
+    .x(function(d) { return x(d.year); })
+    .y(function(d) { return y(d.value); });
+
+  var area = d3.svg.area()
+    .x(function(d) { return x(d.year); })
+    .y0(chartSize.height)
+    .y1(function(d) { return y(d.value); });
+  
+  for (var i=1; i<=3; i++) {
+
+
+    var chart = svg.append('g')
+      .attr('class', 'chart')
+      .attr('width', chartSize.width)
+      .attr('height', chartSize.height)
+      .attr('transform','translate('+(panelMargin.left+(containerSize.width*(i-1))+chartMargin.left)+','+(panelMargin.top + chartMargin.top)+')');
+
+    if (i===1) {
+      var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickSize(-panelSize.width+100)
+        .tickValues([0,.20,.40,.60,.80,1])
+        .tickFormat(function(d) {return pct_int(d)});
+
+      chart.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+        .attr('transform','translate(-100,0)')
+
+
+
+    }
+
+    var question = chart.selectAll(".question")
+      .data([data[i-1]])
+      .enter().append("g")
+      .attr("class", "question");
+
+    // var conditional_values = data[i-1].conditional.values;
+    // console.log(data[i-1].label)
+    // console.log(data[i-1].conditional.values[0].label)
+    // console.log(data[i-1].conditional.values[0].year)
+    // console.log(data[i-1].conditional.values[0].value * data[i-1].total.values[0].value)
+    // console.log('')
+
+    // console.log(data[i-1].label)
+    // console.log(data[i-1].conditional.values[1].label)
+    // console.log(data[i-1].conditional.values[1].year)
+    // console.log(data[i-1].conditional.values[1].value * data[i-1].total.values[0].value)
+    // console.log('')
+
+    // question.append("path")
+    //   .attr("class", "area")
+    //   .style("fill", "#c6dbef")
+    //   .attr("d", function(d) { return area(d.total.values); });
+
+    // question.append("path")
+    //   .attr("class", "area")
+    //   .style("fill","#6baed6")
+    //   .attr("d", function(d) { return area(d.conditional.values); });
+
+    question.append("path")
+      .attr("class", function(d) { return 'line-bihar'; })
+      .attr("d", function(d) { return line(d.bihar.values); });
+
+    question.append("path")
+      .attr("class", function(d) { return 'line-tn'; })
+      .attr("d", function(d) { return line(d.tamil_nadu.values); });
+
+    question.append("circle")
+      .attr("class", "circle-tn" )
+      .attr("r",2)
+      .attr("cx", function(d) { return x(d.tamil_nadu.values[0].year); })
+      .attr("cy", function(d) { return y(d.tamil_nadu.values[0].value); });
+
+    question.append("circle")
+      .attr("class", "circle-tn" )
+      .attr("r",2)
+      .attr("cx", function(d) { return x(d.tamil_nadu.values[1].year); })
+      .attr("cy", function(d) { return y(d.tamil_nadu.values[1].value); });
+
+    question.append("circle")
+      .attr("class", "circle-bihar" )
+      .attr("r",2)
+      .attr("cx", function(d) { return x(d.bihar.values[0].year); })
+      .attr("cy", function(d) { return y(d.bihar.values[0].value); });
+
+    question.append("circle")
+      .attr("class", "circle-bihar" )
+      .attr("r",2)
+      .attr("cx", function(d) { return x(d.bihar.values[1].year); })
+      .attr("cy", function(d) { return y(d.bihar.values[1].value); });
+
+    // Year labels
+    chart
+      .append('text')
+      .attr('x',-5)
+      .attr('y',-15)
+      .attr('class','yearlabels')
+      .style('text-anchor','end')
+      .text('2005')
+
+    chart
+      .append('text')
+      .attr('x',chartSize.width+5)
+      .attr('y',-15)
+      .attr('class','yearlabels')
+      .text('2012')
+
+    var labels = chart.selectAll('label')
+      .data([data[i-1]])
+      .enter()
+      .append('g')
+      .attr('class','labels')
+
+    // Left side pct labels
+    labels
+      .append('text')
+      .attr('x',-5)
+      .attr('y',function(d) {
+        return y(d.bihar.values[0]['value'])+3;
+      })
+      .style('font-weight','bold')
+      .style('text-anchor','end')
+      .text(function(d) {return "Bihar: "+pct(d.bihar.values[0].value)})
+
+    // labels
+    //   .append('text')
+    //   .attr('x',-5)
+    //   // .attr('y',function(d) {
+    //   //   return y(d.conditional.values[0]['value'])+3;
+    //   // })
+    //   .attr('y',125)
+    //   .style('text-anchor','end')
+    //   .text(function(d) {return "Of these,"})
+
+    labels
+      .append('text')
+      .attr('x',-5)
+      // .attr('y',function(d) {
+      //   return y(d.conditional.values[0]['value'])+18;
+      // })
+      .attr('y',function(d) {
+          return y(d.tamil_nadu.values[0]['value'])+3;
+      })
+      .style('font-weight','bold')
+      .style('text-anchor','end')
+      .text(function(d) {return "Tamil Nadu: "+pct(d.tamil_nadu.values[0].value)})
+
+    // labels
+    //   .append('text')
+    //   .attr('x',-5)
+    //   // .attr('y',function(d) {
+    //   //   return y(d.conditional.values[0]['value'])+33;
+    //   // })
+    //   .attr('y',155)
+    //   .style('text-anchor','end')
+    //   .text(function(d) {return "can't go alone"})
+
+    // Right side pct labels
+    labels
+      .append('text')
+      .attr('x',chartSize.width+5)
+      .attr('y',function(d) {
+        return y(d.bihar.values[1]['value'])+3;
+      })
+      .style('font-weight','bold')
+      .style('text-anchor','start')
+      .text(function(d) {return "Bihar: "+pct(d.bihar.values[1].value)})
+
+    labels
+      .append('text')
+      .attr('x',chartSize.width+5)
+      .attr('y',function(d) {
+        return y(d.tamil_nadu.values[1]['value'])+3;
+      })
+      .style('font-weight','bold')
+      .style('text-anchor','start')
+      .text(function(d) {return "Tamil Nadu: "+pct(d.tamil_nadu.values[1].value)})
+
+    chart.append('text')
+      .attr('class','destination')
+      .attr('x',chartSize.width/2)
+      .attr('y',-55)
+      .style('text-anchor','middle')
+      .text(data[i-1].label)
+
+  }
+  var title = svg.append('g')
+  title.append('text')
+  .attr('class','title')
+  .attr('x',panelMargin.left)
+  .attr('y',30)
+  .text("Women in India continue to face mobility constraints")
+
+  title.append('text')
+  .attr('class','subtitle')
+  .attr('x',panelMargin.left)
+  .attr('y',75)
+  .text("Percent of women in Bihar and Tamil Nadu who need permission to visit...")
+}
+
+</script>
+</html>

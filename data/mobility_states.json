@@ -1,0 +1,87 @@
+[
+  {
+    'destination':'health_centre',
+    'label':'Health centre',
+    'bihar': {
+      'values': [
+        { 
+          'year':'2005',
+          'value':.941
+        },
+        {
+          'year':'2012',
+          'value':.843
+        }
+      ]
+    },
+    'tamil_nadu': {
+      'values': [
+        { 
+          'year':'2005',
+          'value':.388,
+        },
+        {
+          'year':'2012',
+          'value':.866,
+        }
+      ]
+    }
+  },
+  {
+    'destination':'relative_friend',
+    'label':'Relative/friend',
+    'bihar': {
+      'values': [
+        {
+          'year':'2005',
+          'value':.952
+        },
+        {
+          'year':'2012',
+          'value':.769
+        }
+      ]
+    },
+    'tamil_nadu': {
+      'values': [
+        {
+          'year':'2005',
+          'value':.637,
+        },
+        {
+          'year':'2012',
+          'value':.865,
+        }
+      ]
+    }
+    
+  },
+  {
+    'destination':'kirana_shop',
+    'label':'Kirana shop',
+    'bihar': {
+      'values': [
+        {
+          'year':'2005',
+          'value':.8
+        },
+        {
+          'year':'2012',
+          'value':.595
+        }
+      ]
+    },
+    'tamil_nadu': {
+      'values': [
+        {
+          'year':'2005',
+          'value':.401,
+        },
+        {
+          'year':'2012',
+          'value':.810,
+        }
+      ]
+    }
+  }
+]

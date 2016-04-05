@@ -1,0 +1,93 @@
+[
+  {
+    'destination':'health_centre',
+    'label':'Health centre',
+    'total': {
+      'values': [
+        { 
+          'year':'2005',
+          'value':.7421
+        },
+        {
+          'year':'2012',
+          'value':.7990
+        }
+      ]
+    },
+    'conditional': {
+      'values': [
+        { 
+          'year':'2005',
+          'value':.2616,
+          'label':.3525
+        },
+        {
+          'year':'2012',
+          'value':.2479,
+          'label':.3341
+        }
+      ]
+    }
+  },
+  {
+    'destination':'relative_friend',
+    'label':'Relative/friend',
+    'total': {
+      'values': [
+        {
+          'year':'2005',
+          'value':.7521
+        },
+        {
+          'year':'2012',
+          'value':.7159
+        }
+      ]
+    },
+    'conditional': {
+      'values': [
+        {
+          'year':'2005',
+          'value':.2395,
+          'label':.3184
+        },
+        {
+          'year':'2012',
+          'value':.2204,
+          'label':.2931
+        }
+      ]
+    }
+    
+  },
+  {
+    'destination':'kirana_shop',
+    'label':'Kirana shop',
+    'total': {
+      'values': [
+        {
+          'year':'2005',
+          'value':.5402
+        },
+        {
+          'year':'2012',
+          'value':.5846
+        }
+      ]
+    },
+    'conditional': {
+      'values': [
+        {
+          'year':'2005',
+          'value':.1198,
+          'label':.2218
+        },
+        {
+          'year':'2012',
+          'value':.1032,
+          'label':.1911
+        }
+      ]
+    }
+  }
+]

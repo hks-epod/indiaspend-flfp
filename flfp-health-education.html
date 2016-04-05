@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<head>
+<title>Women's Outcomes</title>
+<script src="libraries/d3.v3.min.js"></script>
+<script src="libraries/topojson.v1.min.js"></script>
+<script src="libraries/queue.v1.min.js"></script>
+
+
+<style>
+body {
+	font-family: Arial;
+	font-size:14px;
+}
+.xAxis line {
+	fill:none;
+	stroke:rgb(250,250,250);
+	stroke-width:1px;
+	shape-rendering: crispEdges;
+}
+.xAxis path {
+	stroke:none;
+	fill:none;
+}
+.xAxis text {
+	font-size:12px;
+}
+.y.axis path {
+  fill:none;
+}
+.y.axis line {
+  fill: none;
+  stroke:rgb(230,230,230);
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+.labels text {
+	/*text-transform: capitalize;*/
+	/*alignment-baseline: middle;*/
+	font-size:14px;
+  text-anchor:end;
+}
+
+.note {
+
+}
+
+.yearlabels {
+  /*text-transform: capitalize;*/
+  /*alignment-baseline: middle;*/
+  font-size:18px;
+  font-style: italic;
+  /*font-weight:bold;*/
+}
+
+.legend text {
+	/*alignment-baseline: middle;*/
+	font-size:13px;
+}
+.title {
+	font-family: 'Franklin Gothic Medium';
+	/*font-weight:100;*/
+	font-size:24px;
+}
+.subtitle {
+  font-family:Arial;
+  font-size:18px;
+}
+.destination {
+  font-family:Arial;
+  font-size:20px;
+}
+.line {
+  stroke:#3182bd;
+  stroke-width:1.5px;
+  fill:none;
+}
+.baseline {
+  stroke:rgb(100,100,100);
+  stroke-width:1px;
+  shape-rendering: crispEdges;
+}
+.lastlabel {
+  text-anchor: end;
+}
+.area {
+    fill: lightsteelblue;
+    stroke-width: 0;
+}
+.circle {
+  fill:steelblue;
+}
+</style>
+</head>
+
+<body>
+<div id="main">
+	<div id="chartContainer"></div>
+</div>
+</body>
+
+<script>
+
+drawChart();
+
+//THE FUNCTION THAT DRAWS THE CHART
+function drawChart() {
+	//CREATING FUNCTIONS USED FOR THIS CHART
+
+  var pct = d3.format(".03p");
+  var pct_int = d3.format(".1p");
+  var one_dec = d3.format(".1f")
+  var years = [2005,2006,2007,2008,2009,2010,2011,2012];
+
+  var data = [
+    {
+      'outcome':'education',
+      'label':'Enrollment in secondary school',
+      'values': [
+        { 
+          'year':'2005',
+          'value':.495
+        },
+        { 
+          'year':'2006',
+          'value':.508
+        },
+        { 
+          'year':'2007',
+          'value':.540
+        },
+        { 
+          'year':'2008',
+          'value':.579
+        },
+        { 
+          'year':'2009',
+          'value':.586
+        },
+        { 
+          'year':'2010',
+          'value':.624
+        },
+        { 
+          'year':'2011',
+          'value':.663
+        },
+        {
+          'year':'2012',
+          'value':.694
+        }
+      ]
+    },
+    {
+      'outcome':'health',
+      'label':'Life expectancy at birth (in years)',
+      'values': [
+        { 
+          'year':'2005',
+          'value':65.4
+        },
+        { 
+          'year':'2006',
+          'value':65.8
+        },
+        { 
+          'year':'2007',
+          'value':66.3
+        },
+        { 
+          'year':'2008',
+          'value':66.8
+        },
+        { 
+          'year':'2009',
+          'value':67.2
+        },
+        { 
+          'year':'2010',
+          'value':67.7
+        },
+        { 
+          'year':'2011',
+          'value':68.2
+        },
+        {
+          'year':'2012',
+          'value':68.7
+        }
+      ]
+    },
+    {
+      'outcome':'flfp',
+      'label':'Labor force participation',
+      'values': [
+        { 
+          'year':'2005',
+          'value':.369
+        },
+        { 
+          'year':'2006',
+          'value':.351
+        },
+        { 
+          'year':'2007',
+          'value':.334
+        },
+        { 
+          'year':'2008',
+          'value':.318
+        },
+        { 
+          'year':'2009',
+          'value':.302
+        },
+        { 
+          'year':'2010',
+          'value':.286
+        },
+        { 
+          'year':'2011',
+          'value':.278
+        },
+        {
+          'year':'2012',
+          'value':.269
+        }
+      ]
+    }
+  ];
+
+  var containerSize = {
+    'width':350,
+    'height':300 
+  };
+
+  var chartMargin = {
+    'right':100,
+    'left':100,
+    'top':100,
+    'bottom':40
+  };
+
+  var chartSize = {
+    'width':containerSize.width - chartMargin.left - chartMargin.right, 
+    'height':containerSize.height - chartMargin.top - chartMargin.bottom
+  };
+
+  var panelMargin = {
+    'right':50,
+    'left':50,
+    'top':50,
+    'bottom':40
+  };
+
+  var panelSize = {
+    'width': (containerSize.width*3) + panelMargin.left + panelMargin.right, 
+    'height':(containerSize.height*3) + panelMargin.top + panelMargin.bottom
+  };
+
+  var svg = d3.select("#chartContainer")
+    .append('svg')
+    .attr('width',panelSize.width)
+    .attr('height',panelSize.height);
+
+  var x = d3.scale.linear()
+    .domain([years[0],years[years.length-1]])
+    .range([0,chartSize.width]);
+
+  var line = d3.svg.line()
+    .x(function(d) { return x(d.year); })
+    .y(function(d) { return y(d.value); });
+
+  var area = d3.svg.area()
+    .x(function(d) { return x(d.year); })
+    .y0(chartSize.height)
+    .y1(function(d) { return y(d.value); });
+  
+  for (var i=1; i<=3; i++) {
+
+
+    var chart = svg.append('g')
+      .attr('class', 'chart')
+      .attr('width', chartSize.width)
+      .attr('height', chartSize.height)
+      .attr('transform','translate('+(panelMargin.left+(containerSize.width*(i-1))+chartMargin.left)+','+(panelMargin.top + chartMargin.top)+')');
+
+    if (i===1 || i===3) {
+
+      var y = d3.scale.linear()
+        .domain([0, 1])
+        .range([chartSize.height,0]);
+
+      var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickSize(-chartSize.width-120)
+        .tickValues([0,.20,.40,.60,.80,1])
+        .tickFormat(function(d) {
+            return pct_int(d)
+        });
+
+    }
+
+    if (i===2) {
+
+      var y = d3.scale.linear()
+        .domain([0, 80])
+        .range([chartSize.height,0]);
+
+      var yAxis = d3.svg.axis()
+        .scale(y)
+        .orient("left")
+        .tickSize(-chartSize.width-120)
+        .tickValues([0,20,40,60,80])
+        .tickFormat(function(d) {
+            return d3.round(d)
+        });
+    }
+
+    chart.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+      .attr('transform','translate(-60,0)')
+
+    var question = chart.selectAll(".question")
+      .data([data[i-1]])
+      .enter().append("g")
+      .attr("class", "question");
+
+    question.append("path")
+      .attr("class", function(d) { return 'line'; })
+      .attr("d", function(d) { return line(d.values); });
+
+    question.append("circle")
+      .attr("class", "circle" )
+      .attr("r",2)
+      .attr("cx", function(d) { return x(d.values[0].year); })
+      .attr("cy", function(d) { return y(d.values[0].value); });
+
+    question.append("circle")
+      .attr("class", "circle" )
+      .attr("r",2)
+      .attr("cx", function(d) { return x(d.values[d.values.length-1].year); })
+      .attr("cy", function(d) { return y(d.values[d.values.length-1].value); });
+
+    // Year labels
+    chart
+      .append('text')
+      .attr('x',-5)
+      .attr('y',-15)
+      .attr('class','yearlabels')
+      .style('text-anchor','end')
+      .text('2005')
+
+    chart
+      .append('text')
+      .attr('x',chartSize.width+5)
+      .attr('y',-15)
+      .attr('class','yearlabels')
+      .text('2012')
+
+    var labels = chart.selectAll('label')
+      .data([data[i-1]])
+      .enter()
+      .append('g')
+      .attr('class','labels')
+
+    // Left side pct labels
+    labels
+      .append('text')
+      .attr('x',-5)
+      .attr('y',function(d) {
+        return y(d.values[0]['value'])+3;
+      })
+      .style('font-weight','bold')
+      .style('text-anchor','end')
+      .text(function(d) {
+        if (i===2) {
+          return one_dec(d.values[0].value)
+          
+        }
+        else {
+          return pct(d.values[0].value)
+        }
+      })
+
+    // Right side pct labels
+    labels
+      .append('text')
+      .attr('x',chartSize.width+5)
+      .attr('y',function(d) {
+        return y(d.values[d.values.length-1]['value'])+3;
+      })
+      .style('font-weight','bold')
+      .style('text-anchor','start')
+      .text(function(d) {
+        if (i===2) {
+          return one_dec(d.values[d.values.length-1].value)
+        }
+        else {
+          return pct(d.values[d.values.length-1].value)
+        }
+      })
+
+
+    chart.append('text')
+      .attr('class','destination')
+      .attr('x',chartSize.width/2)
+      .attr('y',-55)
+      .style('text-anchor','middle')
+      .text(data[i-1].label)
+
+  }
+  var title = svg.append('g')
+  title.append('text')
+  .attr('class','title')
+  .attr('x',panelMargin.left)
+  .attr('y',30)
+  .text("Women in India are becoming healthier and more educated, but fewer are working")
+
+  // title.append('text')
+  // .attr('class','subtitle')
+  // .attr('x',panelMargin.left)
+  // .attr('y',75)
+  // .text("Percent of women in Bihar and Tamil Nadu who need permission to visit...")
+
+  svg.append('text')
+    .attr('class','note')
+    .attr('x',panelMargin.left)
+    .attr('y',panelMargin.top + chartSize.height + chartMargin.top + 1.5*chartMargin.bottom)
+    .text('Data Source: World Bank World Development Indicators')
+}
+
+</script>
+</html>
